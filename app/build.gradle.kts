@@ -1,7 +1,12 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-}
+        // Use alias from libs.versions.toml without specifying a version
+        alias(libs.plugins.android.application)
+        alias(libs.plugins.kotlin.android)
+
+        // Keep kapt as it's not defined in the TOML file's plugin section
+        kotlin("kapt")
+    }
+
 
 android {
     namespace = "com.example.lab_week_10"
@@ -36,7 +41,13 @@ android {
 }
 
 dependencies {
+    val roomVersion = "2.6.0"
+    implementation ("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    kapt ("androidx.room:room-compiler:$roomVersion")
+    implementation ("androidx.room:room-ktx:$roomVersion")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

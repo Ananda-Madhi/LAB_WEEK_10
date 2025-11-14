@@ -10,15 +10,34 @@ import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.example.lab_week_10.viewmodels.TotalViewModel
 import androidx.lifecycle.Observer
+import kotlin.getValue
+import com.example.lab_week_10.database.TotalDatabase
+import com.example.lab_week_10.database.Total
+import androidx.room.Room
+import com.example.lab_week_10.R
+
+
+
+
+
 class MainActivity : AppCompatActivity() {
+
+    private val db by lazy { prepareDatabase() }
+
     private val viewModel by lazy {
         ViewModelProvider(this)[TotalViewModel::class.java]
+    }
+
+    override fun onPause() {
+        super.onPause()
+        db.totalDao().update(Total(ID, viewModel.total.value ?: 0))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        initializeValueFromDatabase()
         prepareViewModel()
     }
 
@@ -28,13 +47,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun prepareViewModel() {
-        viewModel.total.observe(this) { total ->
-            updateText(total)
-        }
 
+        viewModel.total.observe(this) { value ->
+            updateText(value)
+        }
 
         findViewById<Button>(R.id.button_increment).setOnClickListener {
             viewModel.incrementTotal()
         }
+    }
+
+    private fun prepareDatabase(): TotalDatabase {
+        return Room.databaseBuilder(
+            applicationContext,
+            TotalDatabase::class.java, "total-database"
+        ).allowMainThreadQueries().build()
+    }
+
+    private fun initializeValueFromDatabase() {
+        val total = db.totalDao().getTotal(ID)
+        if (total.isEmpty()) {
+            db.totalDao().insert(Total(ID, 0))
+        } else {
+            viewModel.setTotal(total.first().total)
+        }
+    }
+
+    companion object {
+        const val ID: Long = 1
     }
 }
